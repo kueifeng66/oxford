@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cozy Security & Network Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #F4EAE1; /* Soft warm cream background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        canvas {
+            background-color: #FAF5F0;
+            box-shadow: 0 10px 30px rgba(139, 126, 116, 0.15);
+            border-radius: 20px;
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="cozyCanvas" width="1800"></canvas>
+
+    <script>
+        const canvas = document.getElementById('cozyCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // --- EDITABLE CONFIGURATION ---
+        const portalItems = [
+			{
+				title: "Oxford Discover 2",
+				desc: "Oxford Discover 2",
+				url: "https://www.youtube.com/playlist?list=PL6z1sIXCxsNkqsVfn15gvWqXaO4_ZD5HA",
+				icon: "osi_model",
+				color: "#D9B48F" // Cozy muted gold/ochre
+			},
+            {
+                title: "Oxford Discover 3",
+                desc: "Oxford Discover 3",
+                url: "https://www.youtube.com/playlist?list=PLsPR5BtpJhVkfqHl-dk-6LVR0zqcN-gAr", 
+                icon: "fiber",
+                color: "#A3B19B" // Sage Green
+            },
+            {
+                title: "Oxford Discover 4",
+                desc: "Oxford Discover 4",
+                url: "https://www.youtube.com/playlist?list=PLW0tgrshbp-F5UI6KMmwDypTn00nxmjdY",
+                icon: "fiber_tapping",
+                color: "#D4A373" // Warm Terracotta
+            },
+			{
+                title: "Oxford Discover 5",
+                desc: "Oxford Discover 5",
+                url: "https://www.youtube.com/watch?v=MSwiWtwsVcI&list=PLW0tgrshbp-EeKsLMsxstF4E4uV0zBnGE",
+                icon: "arp_spoofing",
+                color: "#E29578" // Soft Coral
+            },   
+			{
+                title: "Oxford Discover 6",
+                desc: "Oxford Discover 6",
+                url: "https://www.youtube.com/watch?v=kIr9zKE_HyM", // Replace with your target URL
+                icon: "mac_flooding",
+                color: "#C5A880" // Muted sand/taupe that blends with your palette
+            },
+			
+        ];
+
+       // Layout variables
+        const cardWidth = 680;
+        const cardHeight = 110;
+        const startY = 130;
+        const spacingX = 60; // Horizontal gap between the two columns
+        const spacingY = 25; // Vertical gap between rows
+
+        // Calculate starting X to perfectly center both columns inside the 1800px canvas
+        const totalGridWidth = (cardWidth * 2) + spacingX;
+        const startX = (canvas.width - totalGridWidth) / 2; 
+
+        // DYNAMIC CANVAS HEIGHT: Calculates rows based on a 2-column layout
+        const totalRows = Math.ceil(portalItems.length / 2);
+        canvas.height = startY + (totalRows * (cardHeight + spacingY)) + 20;
+        let mouseX = 0;
+        let mouseY = 0;
+        let hoveredButtonIndex = -1;
+
+        // --- CUSTOM CANVAS DRAWING UTILITIES ---
+        function drawRoundedRect(ctx, x, y, width, height, radius, fill, stroke) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            if (fill) {
+                ctx.fillStyle = fill;
+                ctx.fill();
+            }
+            if (stroke) {
+                ctx.strokeStyle = stroke;
+                ctx.stroke();
+            }
+        }
+
+        // Draw neat illustrative icons directly using canvas paths
+        function drawIcon(type, x, y, color) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            if (type === "fiber") {
+                // Core Cable Base
+                ctx.beginPath();
+                ctx.moveTo(x - 22, y + 12);
+                ctx.lineTo(x - 12, y + 15);
+                ctx.lineTo(x - 5, y + 2);
+                ctx.lineTo(x - 15, y - 1);
+                ctx.closePath();
+                ctx.fill();
+
+                // 3 Blooming Glowing Fiber Strands
+                ctx.lineWidth = 2.5;
+                const targets = [
+                    { tx: x + 16, ty: y - 14, cx: x + 2, cy: y + 2 },
+                    { tx: x + 22, ty: y - 2,  cx: x + 5, cy: y + 8 },
+                    { tx: x + 12, ty: y + 14, cx: x + 4, cy: y + 14 }
+                ];
+
+                targets.forEach(target => {
+                    ctx.beginPath();
+                    ctx.moveTo(x - 10, y + 7);
+                    ctx.quadraticCurveTo(target.cx, target.cy, target.tx, target.ty);
+                    ctx.stroke();
+
+                    // Glowing light tips
+                    ctx.save();
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.beginPath();
+                    ctx.arc(target.tx, target.ty, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    ctx.restore();
+                });
+
+            } else if (type === "fiber_tapping") {
+                // Main Fiber Line passing through horizontally
+                ctx.beginPath();
+                ctx.moveTo(x - 25, y - 5);
+                ctx.quadraticCurveTo(x, y - 12, x + 25, y - 5);
+                ctx.stroke();
+
+                // Tapping node/clip right in the middle
+                ctx.save();
+                ctx.fillStyle = "#5C524E"; 
+                drawRoundedRect(ctx, x - 6, y - 13, 12, 10, 3, "#5C524E", null);
+                ctx.restore();
+
+                // Intercepted data stream curving downward smoothly
+                ctx.save();
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x, y - 5);
+                ctx.quadraticCurveTo(x - 2, y + 10, x + 15, y + 12);
+                ctx.stroke();
+
+                // Tiny data collection drop/node
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x + 15, y + 12, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+            } else if (type === "ddos") {
+                // Central Server Stack
+                ctx.fillStyle = color;
+                drawRoundedRect(ctx, x - 14, y - 10, 28, 8, 2, color, null);
+                drawRoundedRect(ctx, x - 14, y + 2, 28, 8, 2, color, null);
+                
+                // Tiny minimalist server indicator lights
+                ctx.fillStyle = "#FAF5F0";
+                ctx.beginPath();
+                ctx.arc(x - 8, y - 6, 1.5, 0, Math.PI * 2);
+                ctx.arc(x - 8, y + 6, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Distributed Incoming Traffic Lines
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(x - 25, y - 22); ctx.lineTo(x - 15, y - 13); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x + 25, y - 22); ctx.lineTo(x + 15, y - 13); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x - 28, y + 2);  ctx.lineTo(x - 18, y + 2);  ctx.stroke();
+
+                // Traffic "Data Beads"
+                ctx.fillStyle = color;
+                const trafficBeads = [{ bx: x - 20, by: y - 17.5 }, { bx: x + 20, by: y - 17.5 }, { bx: x - 23, by: y + 2 }];
+                trafficBeads.forEach(bead => {
+                    ctx.beginPath(); ctx.arc(bead.bx, bead.by, 3, 0, Math.PI * 2); ctx.fill();
+                });
+
+            } else if (type === "arp_spoofing") {
+                ctx.lineWidth = 2.5;
+
+                // Central Multi-Entry Mapping Box
+                drawRoundedRect(ctx, x - 12, y - 5, 24, 25, 4, color, null);
+                ctx.fillStyle = "#FAF5F0";
+                ctx.fillRect(x - 8, y - 1, 4, 18); 
+
+                // Devices (Nodes)
+                ctx.fillStyle = color;
+                const device1 = { dx: x - 20, dy: y - 18 };
+                const device2 = { dx: x + 20, dy: y - 18 };
+                ctx.beginPath(); ctx.arc(device1.dx, device1.dy, 7, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(device2.dx, device2.dy, 7, 0, Math.PI * 2); ctx.fill();
+
+                // Normal mapping path
+                ctx.beginPath(); ctx.moveTo(device1.dx, device1.dy); ctx.quadraticCurveTo(x - 10, y - 8, x - 5, y - 5); ctx.stroke();
+
+                // Conflicting path
+                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(device2.dx, device2.dy); ctx.quadraticCurveTo(x + 10, y - 8, x + 5, y - 5); ctx.stroke();
+
+                // Conflict rings indicator
+                ctx.strokeStyle = color;
+                ctx.beginPath(); ctx.arc(x, y - 4, 3, 0, Math.PI * 2); ctx.stroke();
+                ctx.beginPath(); ctx.arc(x, y - 4, 6, 0, Math.PI * 2); ctx.stroke();
+
+                // Attacker device mask graphic
+                ctx.fillStyle = "#FAF5F0";
+                ctx.beginPath(); ctx.arc(device2.dx, device2.dy + 1, 3, 0, Math.PI); ctx.stroke();
+                ctx.fillRect(device2.dx - 1.5, device2.dy - 2.5, 3, 1.5); ctx.fill();
+            } else if (type === "xss") {
+                // --- Cozy Minimalist XSS (Cross-Site Scripting) Icon ---
+                ctx.save();
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineWidth = 2.5;
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+
+                // 1. Web browser window container
+                drawRoundedRect(ctx, x - 18, y - 15, 36, 30, 4, null, color);
+    
+                // Browser top bar window line
+                ctx.beginPath();
+                ctx.moveTo(x - 18, y - 7);
+                ctx.lineTo(x + 18, y - 7);
+                ctx.stroke();
+
+                // Tiny browser control dots
+                ctx.beginPath();
+                ctx.arc(x - 12, y - 11, 1.5, 0, Math.PI * 2);
+                ctx.arc(x - 7, y - 11, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 2. Code Brackets inside the window (< >)
+                // Left bracket <
+                ctx.beginPath();
+                ctx.moveTo(x - 7, y + 1);
+                ctx.lineTo(x - 12, y + 6);
+                ctx.lineTo(x - 7, y + 11);
+                ctx.stroke();
+
+                // Right bracket >
+                ctx.beginPath();
+                ctx.moveTo(x + 3, y + 1);
+                ctx.lineTo(x + 8, y + 6);
+                ctx.lineTo(x + 3, y + 11);
+                ctx.stroke();
+
+                // 3. Central script execution slash / injection indicator
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x - 2, y + 13);
+                ctx.lineTo(x + 2, y - 1);
+                ctx.stroke();
+    
+                // Elegant little payload accent dot
+                ctx.beginPath();
+                ctx.arc(x + 12, y + 1, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+   
+            }  else if (type === "sql_injection") {
+                // --- Cozy Minimalist SQL Injection / Database Insertion Icon ---
+                ctx.save();
+                ctx.fillStyle = color;
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2.5;
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+
+                // 1. Clean Flat Database Stack (3 Data Platters)
+                drawRoundedRect(ctx, x - 16, y - 14, 32, 7, 3, color, null); // Top platter
+                drawRoundedRect(ctx, x - 16, y - 3, 32, 7, 3, color, null);  // Middle platter
+                drawRoundedRect(ctx, x - 16, y + 8, 32, 7, 3, color, null);  // Bottom platter
+
+                // Minimalist database negative space indicator lights
+                ctx.fillStyle = "#FAF5F0";
+                ctx.beginPath();
+                ctx.arc(x - 10, y - 10.5, 1.5, 0, Math.PI * 2);
+                ctx.arc(x - 10, y + 0.5, 1.5, 0, Math.PI * 2);
+                ctx.arc(x - 10, y + 11.5, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 2. Incoming Query / Injection Vector Line
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x - 26, y - 20);
+                ctx.quadraticCurveTo(x - 22, y - 6, x - 12, y - 1);
+                ctx.stroke();
+
+                // Subtle arrow pointer entering the middle platter
+                ctx.beginPath();
+                ctx.moveTo(x - 16, y - 4);
+                ctx.lineTo(x - 11, y - 1);
+                ctx.lineTo(x - 17, y + 2);
+                ctx.stroke();
+
+                // 3. Stylized Code Payload Marker (The single quote/syntax modifier)
+                // We draw a crisp, tiny geometric single-quote string fragment inside the database layer
+                ctx.fillStyle = "#FAF5F0";
+                ctx.font = "bold 13px 'Segoe UI', monospace";
+                ctx.textAlign = "center";
+                ctx.fillText("'", x + 6, y + 4); 
+
+    
+            }  else if (type === "osi_model") {
+			// --- Cozy Minimalist OSI Model / Layered Stack Icon ---
+				ctx.save();
+				ctx.fillStyle = color;
+				ctx.strokeStyle = color;
+				ctx.lineWidth = 2;
+				ctx.lineCap = "round";
+
+			// 1. Central vertical data traversal line (representing flow through the stack)
+				ctx.setLineDash([2, 3]); // Elegant dashed line style
+				ctx.beginPath();
+				ctx.moveTo(x, y - 20);
+				ctx.lineTo(x, y + 20);
+				ctx.stroke();
+				ctx.setLineDash([]); // Reset dashed lines back to solid
+
+    // 2. 4 Layered Architecture Blocks (Abstracting the OSI Stack)
+				const layers = [
+					{ ly: y - 16, lw: 26 }, // Top / Application Layer
+					{ ly: y - 6,  lw: 32 }, // Transport Layer
+					{ ly: y + 4,  lw: 32 }, // Network Layer
+					{ ly: y + 14, lw: 26 }  // Bottom / Physical Layer
+				];
+
+				layers.forEach(layer => {
+					// Draw each architectural platform slab neatly
+					drawRoundedRect(ctx, x - layer.lw / 2, layer.ly, layer.lw, 5, 2, color, null);
+				});
+
+				// 3. Tiny crisp negative-space communication points
+				ctx.fillStyle = "#FAF5F0"; 
+				ctx.beginPath();
+				ctx.arc(x, y - 13.5, 1.2, 0, Math.PI * 2);
+				ctx.arc(x, y + 6.5, 1.2, 0, Math.PI * 2);
+				ctx.fill();
+
+    
+			}  else if (type === "mac_flooding") {
+                ctx.lineWidth = 2.5;
+                // 1. Central Network Switch Box (The core target of the flood)
+                drawRoundedRect(ctx, x - 18, y - 8, 36, 16, 4, color, null);
+                // Switch ports (Minimalist visual cutouts inside the switch)
+                ctx.fillStyle = "#FAF5F0";
+                ctx.fillRect(x - 12, y - 3, 4, 6);
+                ctx.fillRect(x - 2,  y - 3, 4, 6);
+                ctx.fillRect(x + 8,  y - 3, 4, 6);
+                // 2. Overwhelming "Flood" of Incoming MAC Address Packets
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                // Curved, cascading arrows/lines pointing down or into the switch
+                ctx.beginPath();
+                ctx.moveTo(x - 22, y - 22);
+                ctx.quadraticCurveTo(x - 12, y - 18, x - 8, y - 10);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y - 24);
+                ctx.lineTo(x, y - 10);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x + 22, y - 22);
+                ctx.quadraticCurveTo(x + 12, y - 18, x + 8, y - 10);
+                ctx.stroke();
+                // 3. Overflow / Drop indicators at the bottom (CAM table exhaustion)
+                ctx.fillStyle = color;
+                ctx.beginPath(); ctx.arc(x - 6, y + 16, 2.5, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + 6, y + 18, 2, 0, Math.PI * 2);   ctx.fill();
+                // Tiny decorative warning accent dot at the top center
+                ctx.fillStyle = "#FFFFFF";
+                ctx.beginPath(); ctx.arc(x, y - 4, 1.5, 0, Math.PI * 2); ctx.fill();
+            }  else if (type === "vlan_hopping") {
+                ctx.lineWidth = 2.5;
+
+                // 1. Two distinct isolated VLAN segments (Source at bottom-left, Target at top-right)
+                // Source VLAN block
+                drawRoundedRect(ctx, x - 20, y + 4, 15, 10, 3, color, null);
+                // Target VLAN block
+                drawRoundedRect(ctx, x + 5, y - 14, 15, 10, 3, color, null);
+
+                // Internal minimalist node dots inside the VLAN blocks
+                ctx.fillStyle = "#FAF5F0";
+                ctx.beginPath(); ctx.arc(x - 12, y + 9, 1.5, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + 12, y - 9, 1.5, 0, Math.PI * 2); ctx.fill();
+
+                // 2. The "Hop" - An escape curve leaping over the logical boundary
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x - 12, y + 4); // Starting from source block
+                ctx.quadraticCurveTo(x - 5, y - 16, x + 5, y - 9); // Arching over the middle divide
+                ctx.stroke();
+
+                // 3. Arrowhead pointing strictly into the unauthorized target zone
+                ctx.save();
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.moveTo(x, y - 12);
+                ctx.lineTo(x + 6, y - 9);
+                ctx.lineTo(x + 2, y - 5);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+
+                // 4. "Double Tagging" indicator (Two small nested data packet markers mid-flight)
+                ctx.fillStyle = color;
+                ctx.beginPath(); ctx.arc(x - 6, y - 3, 2, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x - 2, y - 6, 2, 0, Math.PI * 2); ctx.fill();
+			}   else if (type === "ip_spoofing") {
+                ctx.lineWidth = 2.5;
+
+                // 1. Target Destination Node (Right side)
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x + 18, y, 6, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Small concentric rings around the destination to represent acceptance
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath(); ctx.arc(x + 18, y, 12, 0, Math.PI * 2); ctx.stroke();
+
+                // 2. Transmitting Packet Pathway
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(x - 22, y + 12); // True source starting location
+                ctx.quadraticCurveTo(x - 5, y + 10, x + 12, y); // Curved pathway to destination
+                ctx.stroke();
+
+                // 3. The "Masked" False Identity Layer (Top left)
+                // A ghost/hollow source node representing the forged header
+                ctx.save();
+                ctx.setLineDash([3, 3]); // Dashed line to show it is a fraudulent/virtual identity
+                ctx.beginPath();
+                ctx.arc(x - 14, y - 12, 6, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+
+                // Alternating fake tracking link down to the main stream
+                ctx.save();
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(x - 14, y - 6);
+                ctx.lineTo(x - 4, y + 4);
+                ctx.stroke();
+                ctx.restore();
+
+                // 4. In-flight Packet Payload Dot
+                ctx.fillStyle = "#FFFFFF";
+                ctx.beginPath();
+                ctx.arc(x + 2, y + 4, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = color;
+                ctx.stroke();
+			} else if (type === "icmp_redirect") {
+                ctx.lineWidth = 2.5;
+
+                // 1. Two Router Nodes (Subtle target gateways)
+                // Default Gateway (Top node)
+                ctx.fillStyle = color;
+                ctx.beginPath(); ctx.arc(x - 12, y - 12, 5, 0, Math.PI * 2); ctx.fill();
+                
+                // Optimal/Better Gateway (Bottom node)
+                ctx.beginPath(); ctx.arc(x + 16, y + 10, 5, 0, Math.PI * 2); ctx.fill();
+
+                // 2. Original Intended Route (Fading / Dashed path)
+                ctx.save();
+                ctx.strokeStyle = color;
+                ctx.setLineDash([2, 3]);
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(x - 24, y - 2);
+                ctx.lineTo(x - 12, y - 12);
+                ctx.stroke();
+                ctx.restore();
+
+                // 3. The Redirect / Interception Action
+                // A sharp, elegant redirection arrow pushing the packet downwards
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(x - 24, y - 2); // Start path
+                ctx.quadraticCurveTo(x - 8, y + 2, x + 16, y + 10); // Curving elegantly to the better route
+                ctx.stroke();
+
+                // 4. Redirect Message Banner (Minimalist control packet indicator)
+                ctx.save();
+                ctx.fillStyle = color;
+                // Draw a small decorative information tag floating near the split point
+                drawRoundedRect(ctx, x - 10, y - 3, 16, 8, 2, color, null);
+                
+                // White accent dot inside the message tag
+                ctx.fillStyle = "#FAF5F0";
+                ctx.beginPath(); ctx.arc(x - 2, y + 1, 1.5, 0, Math.PI * 2); ctx.fill();
+            }   else if (type === "bgp_hijacking") {
+                ctx.lineWidth = 2.5;
+
+                // 1. Autonomous System Nodes (Network Peers)
+                // Source Origin Node (Left)
+                ctx.fillStyle = color;
+                ctx.beginPath(); ctx.arc(x - 20, y + 4, 5, 0, Math.PI * 2); ctx.fill();
+
+                // Legitimate Destination Node (Top Right)
+                ctx.beginPath(); ctx.arc(x + 16, y - 12, 5, 0, Math.PI * 2); ctx.fill();
+
+                // Rogue/Hijacking Node (Bottom Right - advertising a false route)
+                ctx.beginPath(); ctx.arc(x + 14, y + 14, 5, 0, Math.PI * 2); ctx.fill();
+
+                // 2. The Legitimate Intended Path (Interrupted/Dashed)
+                ctx.save();
+                ctx.strokeStyle = color;
+                ctx.setLineDash([2, 3]);
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(x - 15, y + 2);
+                ctx.quadraticCurveTo(x - 2, y - 8, x + 11, y - 10);
+                ctx.stroke();
+                ctx.restore();
+
+                // 3. The Hijacked Path (Solid, aggressive curve pulling traffic down)
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(x - 15, y + 2);
+                ctx.quadraticCurveTo(x, y + 6, x + 9, y + 12);
+                ctx.stroke();
+
+                // 4. Rogue Route Advertisement Waves (Simulating the false prefix announcement)
+                ctx.save();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(x + 14, y + 14, 11, Math.PI, Math.PI * 1.5);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(x + 14, y + 14, 16, Math.PI, Math.PI * 1.5);
+                ctx.stroke();
+            } else if (type === "port_scanning") {
+                ctx.lineWidth = 2;
+
+                // 1. Grid of target ports (Nodes)
+                const ports = [
+                    { px: x - 14, py: y - 12, open: false },
+                    { px: x,      py: y - 12, open: true  },
+                    { px: x + 14, py: y - 12, open: false },
+                    { px: x - 14, py: y + 10, open: false },
+                    { px: x,      py: y + 10, open: false },
+                    { px: x + 14, py: y + 10, open: true  }
+                ];
+
+                // Draw the ports
+                ports.forEach(port => {
+                    if (port.open) {
+                        // Open port: Clear filled core with an outer ring
+                        ctx.fillStyle = color;
+                        ctx.beginPath(); ctx.arc(port.px, port.py, 3.5, 0, Math.PI * 2); ctx.fill();
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath(); ctx.arc(port.px, port.py, 7, 0, Math.PI * 2); ctx.stroke();
+                    } else {
+                        // Closed port: Subtle simple ring
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = 2;
+                        ctx.beginPath(); ctx.arc(port.px, port.py, 3.5, 0, Math.PI * 2); ctx.stroke();
+                    }
+                });
+
+                // 2. The Scanning Probe / Sweeping Radar Cone
+                ctx.save();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.5;
+                
+                // Fine sweeping line cutting across the port matrix
+                ctx.beginPath();
+                ctx.moveTo(x - 22, y - 2);
+                ctx.quadraticCurveTo(x, y - 4, x + 22, y + 2);
+                ctx.stroke();
+
+                // Subtle radar ping accent dots trailing the sweep line
+                ctx.fillStyle = color;
+                ctx.beginPath(); ctx.arc(x - 8, y - 2, 1.5, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + 10, y + 1, 1.5, 0, Math.PI * 2); ctx.fill();
+            }   else if (type === "hijacking_fixation") {
+                ctx.lineWidth = 2.5;
+
+                // 1. The Session Token Chain (The identity link being manipulated)
+                ctx.strokeStyle = color;
+                ctx.beginPath();
+                ctx.moveTo(x - 20, y);
+                ctx.lineTo(x + 10, y);
+                ctx.stroke();
+
+                // Two linked session data beads
+                ctx.fillStyle = color;
+                ctx.beginPath(); ctx.arc(x - 12, y, 4, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x - 2,  y, 4, 0, Math.PI * 2); ctx.fill();
+
+                // 2. The "Fixation" Anchor / Pin (Locking the session token in place)
+                ctx.save();
+                ctx.fillStyle = color;
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+
+                // Vertical pin pushing down onto the active token path
+                ctx.beginPath();
+                ctx.moveTo(x + 8, y - 16);
+                ctx.lineTo(x + 8, y);
+                ctx.stroke();
+
+                // Solid cap of the fixation pin
+                drawRoundedRect(ctx, x + 3, y - 18, 10, 4, 1.5, color, null);
+                ctx.restore();
+
+                // 3. Rogue Interception / Hijack Loop (Pulling a copy of the token down)
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(x - 2, y);
+                ctx.quadraticCurveTo(x + 4, y + 14, x + 18, y + 12);
+                ctx.stroke();
+
+                // Attacker hijacking collection node
+                ctx.fillStyle = color;
+                ctx.beginPath(); ctx.arc(x + 18, y + 12, 4, 0, Math.PI * 2); ctx.fill();
+
+                // White negative-space dot inside the attacker node to represent a captured credential
+                ctx.fillStyle = "#FAF5F0";
+                ctx.beginPath(); ctx.arc(x + 18, y + 12, 1.5, 0, Math.PI * 2); ctx.fill();
+			}   else if (type === "ssl_tls") {
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+
+                // 1. The Secure Shield Base (Cryptographic Integrity)
+                ctx.beginPath();
+                ctx.moveTo(x - 14, y - 4);
+                ctx.lineTo(x + 14, y - 4);
+                ctx.lineTo(x + 14, y + 4);
+                ctx.quadraticCurveTo(x + 14, y + 14, x, y + 20);
+                ctx.quadraticCurveTo(x - 14, y + 14, x - 14, y + 4);
+                ctx.closePath();
+                ctx.fill();
+
+                // 2. The Padlock Shackle / Loop (Encrypted Handshake)
+                ctx.save();
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.arc(x, y - 5, 8, Math.PI, 0); // Arching cleanly over the top of the shield
+                ctx.stroke();
+                ctx.restore();
+
+                // 3. Crisp internal negative-space detail (The TLS data stream indicator)
+                ctx.fillStyle = "#FAF5F0";
+                ctx.beginPath();
+                ctx.moveTo(x - 7, y + 1);
+                ctx.lineTo(x + 7, y + 1);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "#FAF5F0";
+                ctx.stroke();
+
+                // Small elegant dot signaling successful protocol verification
+                ctx.fillStyle = "#FAF5F0";
+                ctx.beginPath(); 
+                ctx.arc(x, y + 8, 2, 0, Math.PI * 2); 
+                ctx.fill();
+			}   else if (type === "phishing") {
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+
+                // 1. The Fishing Line (Dropping down vertically from the top-left)
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(x - 10, y - 22);
+                ctx.lineTo(x - 10, y - 4);
+                ctx.stroke();
+
+                // 2. The Hook (J-curve looping up gracefully)
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(x - 10, y - 4);
+                ctx.quadraticCurveTo(x - 10, y + 14, x + 2, y + 10); // Loop down and up
+                ctx.lineTo(x + 2, y + 2); // Hook point rising
+                ctx.stroke();
+
+                // Minimalist hook barb accent
+                ctx.beginPath();
+                ctx.moveTo(x + 2, y + 4);
+                ctx.lineTo(x - 3, y + 8);
+                ctx.stroke();
+
+                // 3. The Bait / Target Data Packet (Floating right on the edge of the hook)
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x + 14, y - 4, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Elegant white negative-space dot to represent secure data being compromised
+                ctx.fillStyle = "#FAF5F0";
+                ctx.beginPath();
+                ctx.arc(x + 14, y - 4, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 4. Subtle ripples / deception rings around the bait
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2, 3]);
+                ctx.beginPath();
+                ctx.arc(x + 14, y - 4, 11, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]); // Reset line dash
+			}
+            ctx.restore();
+        }
+
+        // --- MAIN RENDER LOOP ---
+        function render() {
+            ctx.fillStyle = "#FAF5F0";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Header Text
+            ctx.textAlign = "center";
+            ctx.fillStyle = "#5C524E"; 
+            ctx.font = "bold 32px 'Segoe UI', sans-serif";
+            ctx.fillText("Network Security Workspace", canvas.width / 2, 70);
+            
+            ctx.font = "italic 16px 'Segoe UI', sans-serif";
+            ctx.fillStyle = "#8C827B";
+            ctx.fillText("Your secure, calm portal for infrastructure analysis", canvas.width / 2, 100);
+
+            hoveredButtonIndex = -1;
+
+            // Draw Cards
+            // Draw Cards
+            portalItems.forEach((item, index) => {
+                // Determine column (0 or 1) and row (0, 1, 2...)
+                const col = index % 2;
+                const row = Math.floor(index / 2);
+
+                // Calculate distinct X and Y coordinates per card
+                const x = startX + col * (cardWidth + spacingX);
+                const y = startY + row * (cardHeight + spacingY);
+
+                // Button adjustments relative to the current card's X position
+                const btnX = x + cardWidth - 130;
+                const btnY = y + (cardHeight / 2) - 20;
+                const btnWidth = 100;
+                const btnHeight = 40;
+
+                let isHovered = false;
+                if (mouseX >= btnX && mouseX <= btnX + btnWidth && mouseY >= btnY && mouseY <= btnY + btnHeight) {
+                    isHovered = true;
+                    hoveredButtonIndex = index;
+                }
+
+                // Card background with shadow
+                ctx.save();
+                ctx.shadowColor = "rgba(165, 150, 140, 0.1)";
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetY = 6;
+                drawRoundedRect(ctx, x, y, cardWidth, cardHeight, 16, "#FFFFFF", null);
+                ctx.restore();
+
+                // Icon Background Circle
+                const imgContainerX = x + 45;
+                const imgContainerY = y + cardHeight / 2;
+                ctx.beginPath();
+                ctx.arc(imgContainerX, imgContainerY, 35, 0, Math.PI * 2);
+                ctx.fillStyle = item.color + "22"; 
+                ctx.fill();
+
+                // Draw Icon
+                drawIcon(item.icon, imgContainerX, imgContainerY, item.color);
+
+                // Text
+                ctx.textAlign = "left";
+                ctx.fillStyle = "#4A403A";
+                ctx.font = "bold 20px 'Segoe UI', sans-serif";
+                ctx.fillText(item.title, x + 105, y + 45);
+
+                ctx.fillStyle = "#8C827B";
+                ctx.font = "14px 'Segoe UI', sans-serif";
+                ctx.fillText(item.desc, x + 105, y + 72);
+
+                // Button
+                const btnColor = isHovered ? "#5C524E" : item.color;
+                drawRoundedRect(ctx, btnX, btnY, btnWidth, btnHeight, 20, btnColor, null);
+
+                ctx.textAlign = "center";
+                ctx.fillStyle = "#FFFFFF";
+                ctx.font = "bold 14px 'Segoe UI', sans-serif";
+                ctx.fillText("Open", btnX + (btnWidth / 2), btnY + 25);
+            });
+
+            canvas.style.cursor = (hoveredButtonIndex !== -1) ? "pointer" : "default";
+        }
+
+        // --- EVENT LISTENERS ---
+        canvas.addEventListener('mousemove', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = event.clientX - rect.left;
+            mouseY = event.clientY - rect.top;
+            render(); 
+        });
+
+        canvas.addEventListener('click', () => {
+            if (hoveredButtonIndex !== -1) {
+                window.open(portalItems[hoveredButtonIndex].url, '_blank');
+            }
+        });
+
+        render();
+    </script>
+</body>
+</html>
